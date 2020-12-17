@@ -42,6 +42,16 @@ public class StudyRepositoryExtensionImpl extends QuerydslRepositorySupport impl
 
     @Override
     public List<Study> findByAccount(Set<Tag> tags, Set<Zone> zones) {
-        return null;
+        QStudy study = QStudy.study;
+        JPQLQuery<Study> query = from(study).where(study.published.isTrue()
+                .and(study.closed.isFalse())
+                .and(study.tags.any().in(tags))
+                .and(study.zones.any().in(zones)))
+                .leftJoin(study.tags, QTag.tag).fetchJoin()
+                .leftJoin(study.zones, QZone.zone).fetchJoin()
+                .orderBy(study.publishedDateTime.desc())
+                .distinct()
+                .limit(9);
+        return query.fetch();
     }
 }
