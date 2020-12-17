@@ -12,7 +12,7 @@ import java.util.Set;
 @Transactional(readOnly = true)
 public interface StudyRepositoryExtension {
 
-    List<Study> findByKeyword(String keyword);
+    Page<Study> findByKeyword(String keyword, Pageable pageable);
 
     List<Study> findByAccount(Set<Tag> tags, Set<Zone> zones);
 }

@@ -5,8 +5,10 @@ import com.ystudy.modules.study.event.StudyCreatedEvent;
 import com.ystudy.modules.study.event.StudyUpdateEvent;
 import com.ystudy.modules.study.form.StudyDescriptionForm;
 import com.ystudy.modules.tag.Tag;
+import com.ystudy.modules.tag.TagRepository;
 import com.ystudy.modules.zone.Zone;
 import lombok.RequiredArgsConstructor;
+import net.bytebuddy.utility.RandomString;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.AccessDeniedException;
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.net.URLEncoder;
+import java.util.HashSet;
 
 import static com.ystudy.modules.study.StudyForm.VALID_PATH_PATTERN;
 
@@ -25,6 +28,7 @@ public class StudyService {
     private final StudyRepository studyRepository;
     private final ModelMapper modelMapper;
     private final ApplicationEventPublisher eventPublisher;
+
 
     public Study createNewStudy(Study study, Account account) {
         Study newStudy = studyRepository.save(study);
@@ -183,7 +187,7 @@ public class StudyService {
     }
 
     public void removeMember(Study study, Account account) {
-        study.getMembers().remove(account);
+        study.removeMember(account);
     }
 
     public Study getStudyToEnroll(String path) {
@@ -192,5 +196,7 @@ public class StudyService {
 
         return study;
     }
+
+
 
 }

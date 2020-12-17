@@ -73,11 +73,18 @@ public class Study {
 
     private boolean useBanner;
 
+
     private int memberCount;
 
 
     public void addManager(Account account) {
         this.managers.add(account);
+        this.memberCount ++;
+    }
+
+    public void removeMember(Account account) {
+        this.getMembers().remove(account);
+        this.memberCount--;
     }
 
     public boolean isJoinable(UserAccount userAccount) {
