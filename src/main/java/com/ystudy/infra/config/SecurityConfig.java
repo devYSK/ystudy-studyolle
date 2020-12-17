@@ -28,7 +28,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         http.authorizeRequests()
                 .mvcMatchers("/", "/login", "/sign-up", "/check-email-token",
-                        "/email-login", "/check-email-login", "/login-link") // 이 요청들은 권한 확인 없이 접근 가능
+                        "/email-login", "/check-email-login", "/login-link", "/search/study") // 이 요청들은 권한 확인 없이 접근 가능
                 .permitAll()
                 .mvcMatchers(HttpMethod.GET, "/profile/*").permitAll() // get만 허용하고 나머지는 로그인 해야만 사용 가능
                 .anyRequest().authenticated();

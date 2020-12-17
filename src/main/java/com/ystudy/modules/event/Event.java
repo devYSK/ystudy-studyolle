@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+
 @NamedEntityGraph(
         name = "Event.withEnrollments",
         attributeNodes = @NamedAttributeNode("enrollments")
@@ -50,7 +51,7 @@ public class Event {
     @Column
     private Integer limitOfEnrollments;
 
-    @OneToMany(mappedBy = "event")
+    @OneToMany(mappedBy = "event", cascade = CascadeType.REMOVE)
     @OrderBy("enrolledAt")
     private List<Enrollment> enrollments = new ArrayList<>();
 
@@ -93,45 +94,9 @@ public class Event {
         }
         return false;
     }
+
     public long getNumberOfAcceptedEnrollments() {
         return this.enrollments.stream().filter(Enrollment::isAccepted).count();
-    }
-
-    public boolean canAccept(Enrollment enrollment) {
-        return this.eventType == EventType.CONFIRMATIVE
-                && this.enrollments.contains(enrollment)
-                && this.limitOfEnrollments > this.getNumberOfAcceptedEnrollments()
-                && !enrollment.isAttended()
-                && !enrollment.isAccepted();
-    }
-    public boolean canReject(Enrollment enrollment) {
-        return this.eventType == EventType.CONFIRMATIVE
-                && this.enrollments.contains(enrollment)
-                && !enrollment.isAttended()
-                && enrollment.isAccepted();
-    }
-
-    public void acceptWaitingList() {
-
-        if (this.isAbleToAcceptWaitingEnrollment()) {
-            var waitingList = getWaitingList();
-
-            int numberToAccept = (int) Math.min(this.limitOfEnrollments - this.getNumberOfAcceptedEnrollments(),
-                    waitingList.size());
-
-            waitingList.subList(0, numberToAccept).forEach(e -> e.setAccepted(true));
-        }
-
-    }
-
-    private List<Enrollment> getWaitingList() {
-        return this.enrollments.stream()
-                .filter(enrollment -> !enrollment.isAccepted())
-                .collect(Collectors.toList());
-    }
-
-    public boolean isAbleToAcceptWaitingEnrollment() {
-        return this.eventType == EventType.FCFS && this.limitOfEnrollments > this.getNumberOfAcceptedEnrollments();
     }
 
     public void addEnrollment(Enrollment enrollment) {
@@ -142,6 +107,37 @@ public class Event {
     public void removeEnrollment(Enrollment enrollment) {
         this.enrollments.remove(enrollment);
         enrollment.setEvent(null);
+    }
+
+    public boolean isAbleToAcceptWaitingEnrollment() {
+        return this.eventType == EventType.FCFS && this.limitOfEnrollments > this.getNumberOfAcceptedEnrollments();
+    }
+
+    public boolean canAccept(Enrollment enrollment) {
+        return this.eventType == EventType.CONFIRMATIVE
+                && this.enrollments.contains(enrollment)
+                && this.limitOfEnrollments > this.getNumberOfAcceptedEnrollments()
+                && !enrollment.isAttended()
+                && !enrollment.isAccepted();
+    }
+
+    public boolean canReject(Enrollment enrollment) {
+        return this.eventType == EventType.CONFIRMATIVE
+                && this.enrollments.contains(enrollment)
+                && !enrollment.isAttended()
+                && enrollment.isAccepted();
+    }
+
+    private List<Enrollment> getWaitingList() {
+        return this.enrollments.stream().filter(enrollment -> !enrollment.isAccepted()).collect(Collectors.toList());
+    }
+
+    public void acceptWaitingList() {
+        if (this.isAbleToAcceptWaitingEnrollment()) {
+            var waitingList = getWaitingList();
+            int numberToAccept = (int) Math.min(this.limitOfEnrollments - this.getNumberOfAcceptedEnrollments(), waitingList.size());
+            waitingList.subList(0, numberToAccept).forEach(e -> e.setAccepted(true));
+        }
     }
 
     public void acceptNextWaitingEnrollment() {
@@ -155,17 +151,17 @@ public class Event {
 
     private Enrollment getTheFirstWaitingEnrollment() {
         for (Enrollment e : this.enrollments) {
-            if (!e.isAccepted())
+            if (!e.isAccepted()) {
                 return e;
+            }
         }
 
         return null;
     }
 
-
     public void accept(Enrollment enrollment) {
         if (this.eventType == EventType.CONFIRMATIVE
-        && this.limitOfEnrollments > this.getNumberOfAcceptedEnrollments()) {
+                && this.limitOfEnrollments > this.getNumberOfAcceptedEnrollments()) {
             enrollment.setAccepted(true);
         }
     }
@@ -175,5 +171,4 @@ public class Event {
             enrollment.setAccepted(false);
         }
     }
-
 }
